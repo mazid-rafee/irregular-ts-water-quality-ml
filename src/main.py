@@ -2,12 +2,16 @@ import argparse
 import pandas as pd
 import numpy as np
 import torch
+import sys
+import os
 from sklearn.preprocessing import MinMaxScaler
 from torch.utils.data import DataLoader, TensorDataset
-from models import NeuralODEModel, LSTMModel, BiLSTMModel, TemporalConvNet, TransformerTimeSeries, ODEFunc
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from models.base_models import NeuralODEModel, LSTMModel, BiLSTMModel, TemporalConvNet, TransformerTimeSeries, ODEFunc
+from models.hybrid_models import LSTMAttentionModel, CNNLSTMModel, LSTMTransformerModel, TCNLSTMModel
 from train import train_model
 from test import evaluate_model
-from plot import plot_model_results
+from utils.plot import plot_model_results
 
 # Data loading and preprocessing
 def load_data(file_path, station_id, analyte):
@@ -49,8 +53,9 @@ def create_sequences(data, seq_length):
 
 def main(args):
     # File paths and data settings
-    file_path_usgs = './data/USGS PhysChem Top 100 - Time Series Research.txt'
-    file_path_dbhydro = './data/DbHydro PhysChem Top 100 - Time Series Research.txt'
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    file_path_usgs = os.path.join(base_dir, 'data', 'USGS PhysChem Top 100 - Time Series Research.txt')
+    file_path_dbhydro = os.path.join(base_dir, 'data', 'DbHydro PhysChem Top 100 - Time Series Research.txt')
     top_station_id_usgs = '21FLSJWM_WQX'
     top_station_id_dbhydro = 'SE 03'
     analyte_usgs = 'Dissolved Oxygen (mg/L)'
@@ -93,7 +98,7 @@ def main(args):
     # Define loss function and optimizers
     criterion = torch.nn.MSELoss()
 
-    # Initialize models and train based on user choice
+    # Initialize and train models based on user choice
     if 'LSTM' in args.models:
         lstm_model = LSTMModel(input_dim=3, hidden_dim=50, output_dim=1, num_layers=1)
         lstm_optimizer = torch.optim.Adam(lstm_model.parameters(), lr=0.001)
@@ -135,10 +140,43 @@ def main(args):
         transformer_test_preds, transformer_test_actuals = evaluate_model(transformer_model, criterion, test_loader)
         plot_model_results(transformer_test_preds, transformer_test_actuals, scaler_analyte, "Transformer")
 
+    # Add hybrid models here
+    if 'LSTM+Attention' in args.models:
+        lstm_attention_model = LSTMAttentionModel(input_dim=3, hidden_dim=50, output_dim=1, num_layers=1)
+        lstm_attention_optimizer = torch.optim.Adam(lstm_attention_model.parameters(), lr=0.001)
+        print("Training LSTM + Attention Model...")
+        train_model(lstm_attention_model, lstm_attention_optimizer, criterion, train_loader, num_epochs=20)
+        attention_test_preds, attention_test_actuals = evaluate_model(lstm_attention_model, criterion, test_loader)
+        plot_model_results(attention_test_preds, attention_test_actuals, scaler_analyte, "LSTM+Attention")
+
+    if 'CNN+LSTM' in args.models:
+        cnn_lstm_model = CNNLSTMModel(input_dim=3, hidden_dim=50, output_dim=1, num_layers=1)
+        cnn_lstm_optimizer = torch.optim.Adam(cnn_lstm_model.parameters(), lr=0.001)
+        print("Training CNN + LSTM Model...")
+        train_model(cnn_lstm_model, cnn_lstm_optimizer, criterion, train_loader, num_epochs=20)
+        cnn_lstm_test_preds, cnn_lstm_test_actuals = evaluate_model(cnn_lstm_model, criterion, test_loader)
+        plot_model_results(cnn_lstm_test_preds, cnn_lstm_test_actuals, scaler_analyte, "CNN+LSTM")
+
+    if 'LSTM+Transformer' in args.models:
+        lstm_transformer_model = LSTMTransformerModel(input_dim=3, hidden_dim=50, output_dim=1, num_layers=1)
+        lstm_transformer_optimizer = torch.optim.Adam(lstm_transformer_model.parameters(), lr=0.001)
+        print("Training LSTM + Transformer Model...")
+        train_model(lstm_transformer_model, lstm_transformer_optimizer, criterion, train_loader, num_epochs=20)
+        lstm_transformer_test_preds, lstm_transformer_test_actuals = evaluate_model(lstm_transformer_model, criterion, test_loader)
+        plot_model_results(lstm_transformer_test_preds, lstm_transformer_test_actuals, scaler_analyte, "LSTM+Transformer")
+
+    if 'TCN+LSTM' in args.models:
+        tcn_lstm_model = TCNLSTMModel(input_dim=3, hidden_dim=50, output_dim=1, num_layers=1)
+        tcn_lstm_optimizer = torch.optim.Adam(tcn_lstm_model.parameters(), lr=0.001)
+        print("Training TCN + LSTM Model...")
+        train_model(tcn_lstm_model, tcn_lstm_optimizer, criterion, train_loader, num_epochs=20)
+        tcn_lstm_test_preds, tcn_lstm_test_actuals = evaluate_model(tcn_lstm_model, criterion, test_loader)
+        plot_model_results(tcn_lstm_test_preds, tcn_lstm_test_actuals, scaler_analyte, "TCN+LSTM")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train and test models on selected dataset and models")
     parser.add_argument('--dataset', type=str, choices=['USGS', 'DbHydro'], required=True, help="Choose dataset: 'USGS' or 'DbHydro'")
-    parser.add_argument('--models', nargs='+', choices=['LSTM', 'BiLSTM', 'NeuralODE', 'TCN', 'Transformer'], required=True, help="Choose models to train: 'LSTM', 'BiLSTM', 'NeuralODE', 'TCN', 'Transformer'")
+    parser.add_argument('--models', nargs='+', choices=['LSTM', 'BiLSTM', 'NeuralODE', 'TCN', 'Transformer', 'LSTM+Attention', 'CNN+LSTM', 'LSTM+Transformer', 'TCN+LSTM'], required=True, help="Choose models to train: 'LSTM', 'BiLSTM', 'NeuralODE', 'TCN', 'Transformer', 'LSTM+Attention', 'CNN+LSTM', 'LSTM+Transformer', 'TCN+LSTM'")
 
     args = parser.parse_args()
     main(args)
