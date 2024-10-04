@@ -19,8 +19,8 @@ def plot_model_results(test_preds, test_actuals, scaler, model_name):
     test_actuals = torch.cat(test_actuals).numpy()
 
     # Rescale predictions and actuals back to original scale
-    test_actuals_rescaled = scaler.inverse_transform(test_actuals.reshape(-1, 1))
-    test_preds_rescaled = scaler.inverse_transform(test_preds.reshape(-1, 1))
+    # test_actuals_rescaled = scaler.inverse_transform(test_actuals.reshape(-1, 1))
+    # test_preds_rescaled = scaler.inverse_transform(test_preds.reshape(-1, 1))
 
     # Plot results
-    plot_results(test_actuals_rescaled, test_preds_rescaled, f'{model_name}: Actual vs Predicted')
+    plot_results(test_actuals, test_preds, f'{model_name}: Actual vs Predicted')
