@@ -1,2 +1,0 @@
-1. Tried to used RobustScaler instead of MinMaxScaler, doesn't yeild better result.
-2. Tried to increase the number of layers of LSTM and BiLSTM from 1 to 2, doesn't yeild better result.
