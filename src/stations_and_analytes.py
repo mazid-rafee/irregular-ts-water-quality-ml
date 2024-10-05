@@ -11,6 +11,10 @@ dbhydro_analytes_with_associated = [
         'Associated: Salinity (PSU)', 
         'Associated: Temperature Water (deg C)', 
         'Associated: pH', 
+        'Associated: Dissolved Oxygen (mg/L)'],
+    ['Main Analyte: Salinity (PSU)',
+        'Associated: Specific Conductance (uS/cm)', 
+        'Associated: Temperature Water (deg C)',
         'Associated: Dissolved Oxygen (mg/L)']
 ]
 

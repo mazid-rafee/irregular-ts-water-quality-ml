@@ -10,8 +10,8 @@ class LSTMModel(nn.Module):
 
     def forward(self, x, t):
         # LSTM expects (batch_size, seq_length, input_dim)
-        h_0 = torch.zeros(1, x.size(0), 50)
-        c_0 = torch.zeros(1, x.size(0), 50)
+        h_0 = torch.zeros(self.lstm.num_layers, x.size(0), self.lstm.hidden_size)
+        c_0 = torch.zeros(self.lstm.num_layers, x.size(0), self.lstm.hidden_size)
         
         lstm_out, _ = self.lstm(x, (h_0, c_0))
         

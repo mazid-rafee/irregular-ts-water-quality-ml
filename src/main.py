@@ -4,8 +4,6 @@ import numpy as np
 import torch
 import sys
 import os
-from sklearn.preprocessing import MinMaxScaler
-from torch.utils.data import DataLoader, TensorDataset
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.base_models import LSTMModel, BiLSTMModel
 from train import train_model
@@ -28,10 +26,7 @@ def main(args):
     else:
         raise ValueError(f"Unsupported dataset: {args.dataset}. Choose between 'USGS' or 'DbHydro'.")
 
-    # Let user choose a station
     station_id = choose_station(args.dataset)
-
-    # Let user choose main analyte and associated analytes
     main_analyte, associated_analytes = choose_analytes(args.dataset)
     df_station, scaler_analyte = load_data(file_path, station_id, main_analyte, associated_analytes)
     train_loader, test_loader, input_dimension = prepare_data_loaders(df_station, main_analyte, associated_analytes, 100, 32, True)
