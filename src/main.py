@@ -1,14 +1,13 @@
 import argparse
 import pandas as pd
 import numpy as np
-
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.base_models import LSTMModel, BiLSTMModel, LayerNormLSTMModel
 from models.hybrid_models import LSTMAttentionModel
 from utils.model_trainer_evaluator import train_and_evaluate_model
-from utils.loss_functions import sMAPELoss
+from utils.loss_functions import sMAPELoss, RMSELoss, MAPELoss
 from utils.data_processor import load_data, prepare_data_loaders
 from utils.prompt_options import choose_analytes, choose_station
 
@@ -29,7 +28,8 @@ def main(args):
     df_station, scaler_analyte = load_data(file_path, station_id, main_analyte, associated_analytes)
     train_loader, test_loader, input_dimension = prepare_data_loaders(df_station, main_analyte, associated_analytes, 100, 32, True)
 
-    #criterion = torch.nn.MSELoss()
+    
+    #criterion = RMSELoss()
     criterion = sMAPELoss()
 
     if 'LSTM' in args.models:

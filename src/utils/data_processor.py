@@ -2,7 +2,11 @@ import pandas as pd
 import numpy as np
 import sys
 import os
+import pytz
 from sklearn.preprocessing import MinMaxScaler
+import torch
+import numpy as np
+from torch.utils.data import DataLoader, TensorDataset
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def load_data(file_path, station_id, main_analyte, associated_analytes):
@@ -82,11 +86,14 @@ def create_sequences(data, seq_length):
 def parse_datetime(row):
     date_str = str(row['Date'])
     time_str = str(row['Time']).split('.')[0].zfill(4)
-    return pd.to_datetime(date_str + ' ' + time_str, format='%Y%m%d %H%M')
+    datetime_utc = pd.to_datetime(date_str + ' ' + time_str, format='%Y%m%d %H%M')
+    utc_zone = pytz.utc
+    est_zone = pytz.timezone('US/Eastern')
+    datetime_utc = utc_zone.localize(datetime_utc)
+    datetime_est = datetime_utc.astimezone(est_zone)
+    
+    return datetime_est
 
-import torch
-import numpy as np
-from torch.utils.data import DataLoader, TensorDataset
 
 def prepare_data_loaders(df_station, main_analyte, associated_analytes, seq_length=100, batch_size=32, shuffle=True):
     # Combine scaled analyte data and time data
