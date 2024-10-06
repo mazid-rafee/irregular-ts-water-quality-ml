@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import sys
 import os
+from torch.nn import MSELoss
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.base_models import LSTMModel, BiLSTMModel, LayerNormLSTMModel
 from models.hybrid_models import LSTMAttentionModel
@@ -28,8 +29,6 @@ def main(args):
     df_station, scaler_analyte = load_data(file_path, station_id, main_analyte, associated_analytes)
     train_loader, test_loader, input_dimension = prepare_data_loaders(df_station, main_analyte, associated_analytes, 100, 32, True)
 
-    
-    #criterion = RMSELoss()
     criterion = sMAPELoss()
 
     if 'LSTM' in args.models:
