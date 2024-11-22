@@ -7,6 +7,7 @@ from torch.nn import MSELoss
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.base_models import LSTMModel, BiLSTMModel, LayerNormLSTMModel, LayerNormBiLSTMModel, NeuralODEModel
 from models.hybrid_models import LSTMAttentionModel
+from models.proposed_model import nODEBiLSTM
 from utils.model_trainer_evaluator import train_and_evaluate_model
 from utils.loss_functions import sMAPELoss, RMSELoss, MAPELoss
 from utils.data_processor import load_data, prepare_data_loaders
@@ -72,12 +73,27 @@ def main(args):
             input_dimension=input_dimension, hidden_dim=50, output_dim=1, num_layers=1, criterion=criterion, 
             train_loader=train_loader, test_loader=test_loader, scaler=scaler_analyte, num_epochs=20
         )
+    
+    if 'nODEBiLSTM' in args.models:
+        train_and_evaluate_model(
+            model_class=nODEBiLSTM, model_name="nODE BiLSTM",
+            input_dimension=input_dimension, hidden_dim=50, output_dim=1, num_layers=1, criterion=criterion,
+            train_loader=train_loader, test_loader=test_loader, scaler=scaler_analyte, num_epochs=20
+        )
+
+    if 'nODELSTM' in args.models:
+        train_and_evaluate_model(
+            model_class=nODEBiLSTM, model_name="nODE LSTM",
+            input_dimension=input_dimension, hidden_dim=50, output_dim=1, num_layers=1, criterion=criterion,
+            train_loader=train_loader, test_loader=test_loader, scaler=scaler_analyte, num_epochs=20
+        )
+
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train and test models on selected dataset and models")
     parser.add_argument('--dataset', type=str, choices=['USGS', 'DbHydro'], required=True, help="Choose dataset: 'USGS' or 'DbHydro'")
-    parser.add_argument('--models', nargs='+', choices=['LSTM', 'nLSTM', 'BiLSTM', 'NeuralODE', 'TCN', 'nBiLSTM', 'aLSTM', 'CNN+LSTM', 'LSTM+Transformer', 'TCN+LSTM'], required=True, help="Choose models to train: 'LSTM', 'nLSTM', 'BiLSTM', 'NeuralODE', 'TCN', 'nBiLSTM', 'aLSTM', 'CNN+LSTM', 'LSTM+Transformer', 'TCN+LSTM'")
+    parser.add_argument('--models', nargs='+', choices=['LSTM', 'nLSTM', 'BiLSTM', 'NeuralODE', 'nODEBiLSTM', 'nODELSTM', 'TCN', 'nBiLSTM', 'aLSTM', 'CNN+LSTM', 'LSTM+Transformer', 'TCN+LSTM'], required=True, help="Choose models to train: 'LSTM', 'nLSTM', 'BiLSTM', 'nODEBiLSTM', 'nODELSTM', 'NeuralODE', 'TCN', 'nBiLSTM', 'aLSTM', 'CNN+LSTM', 'LSTM+Transformer', 'TCN+LSTM'")
 
     args = parser.parse_args()
     main(args)
