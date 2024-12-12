@@ -48,5 +48,4 @@ def evaluate_model(model, criterion, test_loader, scaler):
     print(f'Test MAPE Loss: {test_mape_loss}')
     print(f'Test MSE Loss: {test_mse_loss}')
 
-    return test_preds, test_actuals
-
+    return test_preds, test_actuals, test_smape_loss, test_rmse_loss, test_mape_loss, test_mse_loss

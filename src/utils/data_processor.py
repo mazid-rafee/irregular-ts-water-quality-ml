@@ -103,7 +103,7 @@ def parse_datetime(row):
 
 
 def prepare_data_loaders(df_station, main_analyte, associated_analytes, seq_length=100, batch_size=32, shuffle=True):
-    plot_data_spread_real_time(df_station, main_analyte, associated_analytes)
+    # plot_data_spread_real_time(df_station, main_analyte, associated_analytes)
     
     df_combined_scaled = np.hstack((
         df_station[[main_analyte + '_scaled'] + [analyte + '_scaled' for analyte in associated_analytes]].values,
