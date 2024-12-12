@@ -2,7 +2,7 @@ import torch
 from utils.loss_functions import sMAPELoss, RMSELoss, MAPELoss
 from torch.nn import MSELoss
 
-def evaluate_model(model, criterion, test_loader, scaler):
+def evaluate_model(model, model_name, criterion, test_loader, scaler):
     model.eval()
 
     test_smape_loss = 0.0
@@ -23,7 +23,12 @@ def evaluate_model(model, criterion, test_loader, scaler):
             sequence_input = X_batch[:, :, :]
             timestamp_input = timestamp_batch
 
-            outputs = model(sequence_input, timestamp_input)
+            if model_name.lower() == "neural ode":
+                outputs = model(sequence_input)
+            else:
+                outputs = model(sequence_input, timestamp_input)
+
+            
             outputs_rescaled = scaler.inverse_transform(outputs.cpu().numpy().reshape(-1, 1))
             y_batch_rescaled = scaler.inverse_transform(y_batch.cpu().numpy().reshape(-1, 1))
 

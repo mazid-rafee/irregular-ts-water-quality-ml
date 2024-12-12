@@ -1,6 +1,6 @@
 import torch
 
-def train_model(model, optimizer, criterion, train_loader, scaler, num_epochs=10):
+def train_model(model, model_name, optimizer, criterion, train_loader, scaler, num_epochs=10):
     model.train()
     for epoch in range(num_epochs):
         running_original_loss = 0.0 
@@ -9,9 +9,16 @@ def train_model(model, optimizer, criterion, train_loader, scaler, num_epochs=10
             sequence_input = X_batch[:, :, :] 
             timestamp_input = timestamp_batch 
             optimizer.zero_grad()
-            outputs = model(sequence_input, timestamp_input)
+
+            if model_name.lower() == "neural ode":
+                outputs = model(sequence_input)
+            else:
+                outputs = model(sequence_input, timestamp_input)
+
             outputs_rescaled = scaler.inverse_transform(outputs.detach().cpu().numpy().reshape(-1, 1))
             y_batch_rescaled = scaler.inverse_transform(y_batch.cpu().numpy().reshape(-1, 1))
+            #print (outputs_rescaled.shape)
+            #print (y_batch_rescaled.shape)
             original_loss = criterion(
                 torch.tensor(outputs_rescaled, dtype=torch.float32),
                 torch.tensor(y_batch_rescaled, dtype=torch.float32)

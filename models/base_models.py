@@ -79,10 +79,10 @@ class LayerNormBiLSTMModel(nn.Module):
         
         return self.fc(combined_input)
 
+
 class ODEFunc(nn.Module):
     def __init__(self, hidden_dim):
         super(ODEFunc, self).__init__()
-        self.hidden_dim = hidden_dim
         self.fc = nn.Linear(hidden_dim, hidden_dim)
         self.relu = nn.ReLU()
 
@@ -90,22 +90,24 @@ class ODEFunc(nn.Module):
         return self.relu(self.fc(h))
 
 class NeuralODEModel(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim, num_layers, t=torch.tensor([0, 1], dtype=torch.float32)):
+    def __init__(self, input_dim, hidden_dim, output_dim, num_layers, t=torch.linspace(0, 1, steps=10)):
         super(NeuralODEModel, self).__init__()
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
+        self.fc_in = nn.Linear(input_dim, hidden_dim)
         self.odefunc = ODEFunc(hidden_dim)
-        self.fc = nn.Linear(hidden_dim + 2, output_dim)
-        self.t = t
+        self.fc_out = nn.Linear(hidden_dim, output_dim)
+        self.default_t = t
 
-    def forward(self, x, t):
-        h_0 = torch.zeros(self.lstm.num_layers, x.size(0), self.lstm.hidden_size).to(x.device)
-        c_0 = torch.zeros(self.lstm.num_layers, x.size(0), self.lstm.hidden_size).to(x.device)        
-        lstm_out, _ = self.lstm(x, (h_0, c_0))
-        lstm_out_last_step = lstm_out[:, -1, :]       
-        self.t = self.t.to(x.device).float()         
-        ode_out = odeint(self.odefunc, lstm_out_last_step, self.t)
-        ode_out_last = ode_out[-1]        
-        t = t.float()
-        combined_input = torch.cat((ode_out_last, t), dim=-1)
-        
-        return self.fc(combined_input)
+    def forward(self, x):
+        batch_size, seq_len, input_dim = x.size()
+        h0 = self.fc_in(x.view(-1, input_dim))
+        h0 = h0.view(batch_size * seq_len, -1)
+        t = self.default_t.to(x.device).float()
+        ode_out = odeint(self.odefunc, h0, t)
+        ode_out_last = ode_out[-1].view(batch_size, seq_len, -1)[:, -1, :]
+        return self.fc_out(ode_out_last)
+
+
+
+
+
+
