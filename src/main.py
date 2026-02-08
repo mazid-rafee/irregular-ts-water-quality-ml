@@ -8,6 +8,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.base_models import LSTMModel, BiLSTMModel, LayerNormLSTMModel, LayerNormBiLSTMModel, NeuralODEModel
 from models.hybrid_models import LSTMAttentionModel
 from models.proposed_model import nODEBiLSTM
+from models.time_series_mixer import LazyTimeSeriesMixer
 from utils.model_trainer_evaluator import train_and_evaluate_model
 from utils.loss_functions import sMAPELoss, RMSELoss, MAPELoss
 from utils.data_processor import load_data, prepare_data_loaders
@@ -33,7 +34,7 @@ def main(args):
     os.makedirs(results_dir, exist_ok=True)
     results_file = os.path.join(results_dir, f"{args.dataset}_model_results.txt")
 
-    with open(results_file, 'w') as f:
+    with open(results_file, 'a') as f:
         f.write("Station,Main Analyte,Associated Analytes,Model,sMAPE Loss,RMSE Loss,MAPE Loss,MSE Loss\n")
 
     for station_id in stations:
@@ -101,6 +102,7 @@ def main(args):
                         hidden_dim=50, output_dim=1, num_layers=1, criterion=criterion,
                         train_loader=train_loader, test_loader=test_loader, scaler=scaler_analyte, num_epochs=20
                     )
+
                 else:
                     print(f"Model {model_choice} is not implemented. Skipping...")
                     continue
