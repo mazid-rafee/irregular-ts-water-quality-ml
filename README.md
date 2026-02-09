@@ -9,6 +9,11 @@ Research code for forecasting irregularly sampled water quality time series from
 - Hybrid models: LSTM with attention, nODE-BiLSTM, nODE-LSTM.
 - Metrics: sMAPE, RMSE, MAPE, MSE.
 
+## Publication
+This work has been published in IEEE Xplore (March 2025).
+
+- Md Abdullah Al Mazid, Liangdong Deng, and Naphtali Rishe, "Addressing Irregularities and Enhancing Forecasting for Water Quality Metrics by Integrating Ordinary Differential Equations with BiLSTM," SoutheastCon 2025. PDF: https://cake.fiu.edu/Publications/Mazid+al-25-AI.Addressing_Irregularities_and_Enhancing_Forecasting_for_Water_Quality_Metrics_by_Integrating_Ordinary_Differential_Equations_with_BiLSTM.published-downloaded.pdf
+
 ## Repository structure
 - `src/` training and evaluation entry points plus utilities.
 - `models/` model definitions for baselines and proposed variants.
