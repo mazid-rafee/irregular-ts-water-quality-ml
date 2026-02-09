@@ -14,7 +14,7 @@ def load_data(file_path, station_id, main_analyte, associated_analytes):
 
     df = pd.read_csv(file_path, sep='\t', header=0, low_memory=False) 
     print("Total Datapoints in the data: " + str(df.shape))
-    df_station = df[df['Station Identifier'] == station_id]
+    df_station = df[df['Station Identifier'] == station_id].copy()
     print("Total Datapoints in the station: " + str(df_station.shape))
     
     df_station.loc[:, 'Datetime'] = df_station.apply(parse_datetime, axis=1)
@@ -52,7 +52,7 @@ def load_data(file_path, station_id, main_analyte, associated_analytes):
     print("Total Datapoints in the station with the analytes values after clearning outliers: " + str(df_station.shape))
 
     if df_station.empty:
-        raise ValueError("No valid data after dropping rows with NaN values in analytes or Datetime columns.")
+        return None, None
   
     start_time = df_station['Datetime'].iloc[0]
     df_station['Time_in_seconds'] = (df_station['Datetime'] - start_time).dt.total_seconds()

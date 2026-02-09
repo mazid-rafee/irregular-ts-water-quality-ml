@@ -7,8 +7,7 @@ from torch.nn import MSELoss
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.base_models import LSTMModel, BiLSTMModel, LayerNormLSTMModel, LayerNormBiLSTMModel, NeuralODEModel
 from models.hybrid_models import LSTMAttentionModel
-from models.proposed_model import nODEBiLSTM
-from models.time_series_mixer import LazyTimeSeriesMixer
+from models.proposed_model import nODEBiLSTM, nODEBiLSTMTime
 from utils.model_trainer_evaluator import train_and_evaluate_model
 from utils.loss_functions import sMAPELoss, RMSELoss, MAPELoss
 from utils.data_processor import load_data, prepare_data_loaders
@@ -47,6 +46,9 @@ def main(args):
             print(f"    Associated Analytes: {', '.join(associated_analytes) if associated_analytes else 'None'}")
             
             df_station, scaler_analyte = load_data(file_path, station_id, main_analyte, associated_analytes)
+            if df_station is None or scaler_analyte is None:
+                print("  Skipping: no valid data after cleaning for this station/analyte set.")
+                continue
             train_loader, test_loader, input_dimension = prepare_data_loaders(
                 df_station, main_analyte, associated_analytes, 100, 32, True
             )
@@ -96,6 +98,12 @@ def main(args):
                         hidden_dim=50, output_dim=1, num_layers=1, criterion=criterion,
                         train_loader=train_loader, test_loader=test_loader, scaler=scaler_analyte, num_epochs=20
                     )
+                elif model_choice == 'nODEBiLSTMTime':
+                    model, _, _, smape_loss, rmse_loss, mape_loss, mse_loss = train_and_evaluate_model(
+                        model_class=nODEBiLSTMTime, model_name="nODE BiLSTM (Time-Aware)", input_dimension=input_dimension,
+                        hidden_dim=50, output_dim=1, num_layers=1, criterion=criterion,
+                        train_loader=train_loader, test_loader=test_loader, scaler=scaler_analyte, num_epochs=20
+                    )
                 elif model_choice == 'nODELSTM':
                     model, _, _, smape_loss, rmse_loss, mape_loss, mse_loss = train_and_evaluate_model(
                         model_class=nODEBiLSTM, model_name="nODE LSTM", input_dimension=input_dimension,
@@ -115,7 +123,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train and test models on selected dataset and models")
     parser.add_argument('--dataset', type=str, choices=['USGS', 'DbHydro'], required=True, help="Choose dataset: 'USGS' or 'DbHydro'")
-    parser.add_argument('--models', nargs='+', choices=['LSTM', 'nLSTM', 'BiLSTM', 'NeuralODE', 'nODEBiLSTM', 'nODELSTM', 'TCN', 'nBiLSTM', 'aLSTM', 'CNN+LSTM', 'LSTM+Transformer', 'TCN+LSTM'], required=True, help="Choose models to train: 'LSTM', 'nLSTM', 'BiLSTM', 'nODEBiLSTM', 'nODELSTM', 'NeuralODE', 'TCN', 'nBiLSTM', 'aLSTM', 'CNN+LSTM', 'LSTM+Transformer', 'TCN+LSTM'")
+    parser.add_argument('--models', nargs='+', choices=['LSTM', 'nLSTM', 'BiLSTM', 'NeuralODE', 'nODEBiLSTM', 'nODEBiLSTMTime', 'nODELSTM', 'TCN', 'nBiLSTM', 'aLSTM', 'CNN+LSTM', 'LSTM+Transformer', 'TCN+LSTM'], required=True, help="Choose models to train: 'LSTM', 'nLSTM', 'BiLSTM', 'nODEBiLSTM', 'nODEBiLSTMTime', 'nODELSTM', 'NeuralODE', 'TCN', 'nBiLSTM', 'aLSTM', 'CNN+LSTM', 'LSTM+Transformer', 'TCN+LSTM'")
 
     args = parser.parse_args()
     main(args)
